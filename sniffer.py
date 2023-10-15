@@ -1,37 +1,42 @@
+import sys
 import time
 from colorama import Fore
 from colorama import Style
 
 import scapy.all
+from scapy.config import conf
 from scapy.layers import http
 import psutil
 from prettytable import PrettyTable
 import subprocess
 import re
+from ArpSpoof import SpooferARP
 
 choice = "Y"
 
 
 def get_current_mac(interface):
     try:
-        output = subprocess.check_output(["ifconfig", interface])
-        return re.search("\w\w:\w\w:\w\w:\w\w:\w\w:\w\w", str(output)).group(0)
+        output = subprocess.check_output(["ifconfig", interface]).decode(sys.stdout.encoding) #tu jest zjebane - jak strzeli na ifconfig, interface; nie dostaje address 123.123.123
+        output_lines = output.splitlines()[2].split(' ')[1]
+        return output_lines
     except:
         pass
 
 
 def get_current_ip(interface):
-    output = subprocess.check_output(["ifconfig", interface])
-    pattern = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
-    output1 = output.decode()
-    ip = pattern.search(output1)[0]
-    return ip
+    output = subprocess.check_output(["ifconfig", interface]).decode(sys.stdout.encoding)
+    output_list = output.splitlines()[4].split(' ')[1]
+
+    return output_list
 
 
 def ip_table():
     # get all the interface deatils in with psutil in a variable
     addrs = psutil.net_if_addrs()
+    # print(addrs)
     t = PrettyTable([f'{Fore.GREEN}Interface', 'Mac Address', f'IP Address{Style.RESET_ALL}'])
+    # todo obrobic addr
     for k, v in addrs.items():
         mac = get_current_mac(k)
         ip = get_current_ip(k)
@@ -61,7 +66,7 @@ def process_sniffed_packet(packet):
         if test:
             print(f"{Fore.GREEN}[+] Username OR password is Send >>>> ", test, f"{Style.RESET_ALL}")
         # To Print the raw Packet
-        if (choice == "Y" or choice == "y"):
+        if choice == "Y" or choice == "y":
             raw_http_request(packet)
 
 
@@ -121,5 +126,6 @@ def main_sniff():
     except KeyboardInterrupt:
         print(f"{Fore.RED}\n[!] Redirecting to Main Menu...{Style.RESET_ALL}")
         time.sleep(3)
+
 
 main_sniff()
