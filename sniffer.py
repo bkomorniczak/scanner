@@ -18,18 +18,24 @@ choice = "Y"
 def get_current_mac(interface):
     try:
         output = subprocess.check_output(["ifconfig", interface]).decode(sys.stdout.encoding) #tu jest zjebane - jak strzeli na ifconfig, interface; nie dostaje address 123.123.123
-        output_lines = output.splitlines()[2].split(' ')[1]
-        return output_lines
+        # output_lines = output.splitlines()[2].split(' ')[1]
+        output_lines = output.splitlines()
+        for line in output_lines:
+            if 'ether' in line:
+                return line.split(' ')[1]
     except:
         pass
 
 
 def get_current_ip(interface):
-    output = subprocess.check_output(["ifconfig", interface]).decode(sys.stdout.encoding)
-    output_list = output.splitlines()[4].split(' ')[1]
-
-    return output_list
-
+    try:
+        output = subprocess.check_output(["ifconfig", interface]).decode(sys.stdout.encoding)
+        output_lines = output.splitlines()
+        for line in output_lines:
+            if 'inet6' in line:
+                return line.split(' ')[1]
+    except:
+        pass
 
 def ip_table():
     # get all the interface deatils in with psutil in a variable
